@@ -4,6 +4,8 @@
 
 set -eux
 
+THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
 retry() {
   cmd=$*
   $cmd || (sleep 2 && $cmd) || (sleep 10 && $cmd)
@@ -35,7 +37,7 @@ else
   # to downloads.haskell.org and clicking the "lock" icon.
   # In the absence of this certificate the stack setup command below fails on Windows
   # This file may need to be renewed when the certificate expires or is revoked.
-  certutil -f -addstore "CA" ./tools/haskell-org.pem
+  certutil -f -installcert "${THIS_DIR}"/globalsign.pem
 fi
 
 retry stack --no-terminal setup
