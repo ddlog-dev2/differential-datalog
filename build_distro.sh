@@ -35,6 +35,7 @@ mv Cargo.toml Cargo.toml.bak
 cp Cargo.full.toml Cargo.toml
 
 # Set relative path to vendor directory in `.cargo/config`
+mkdir -p "vendor/differential-dataflow"
 cargo vendor -s Cargo.toml > config.tmp
 
 # Restore `Cargo.toml`.
