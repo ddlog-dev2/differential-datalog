@@ -34,8 +34,10 @@ mv Cargo.toml Cargo.toml.bak
 
 cp Cargo.full.toml Cargo.toml
 
-# Set relative path to vendor directory in `.cargo/config`
-cargo vendor -s Cargo.toml > config.tmp
+# Set relative path to vendor directory in `.cargo/config`.
+# `cargo vendor` fails on the differential-dataflow crate when ${HOME} is a
+# symlink.
+HOME=$(readlink -f "${HOME}") cargo vendor -s Cargo.toml > config.tmp
 
 # Restore `Cargo.toml`.
 mv Cargo.toml.bak Cargo.toml
