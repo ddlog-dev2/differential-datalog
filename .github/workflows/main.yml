@@ -1,0 +1,56 @@
+name: CI
+
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on push to any branch
+  push:
+  # Triggers the workflow on pull request events but only for the master branch
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+  release:
+    types: [ published ]
+
+defaults:
+    run:
+        shell: bash
+
+jobs:
+  build_and_test:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    env:
+        DDLOG_TEST_PROGRESS: 1
+        CLASSPATH: ${{ github.workspace }}/flatbuffers/java
+
+    steps:
+      - run: echo "Build triggered by GitHub event ${GITHUB_EVENT_NAME}"
+      - uses: actions/checkout@v2
+      # flatc gets installed to '${HOME}/.local/bin'.
+      - run: echo "${HOME}/.local/bin" >> "${GITHUB_PATH}"
+      - run: echo "${PATH}"
+      - run: ./tools/install-flatbuf.sh
+      - run: stack --no-terminal test --ta '-p tutorial'
+      - run: stack --no-terminal install
+      - name: build distro
+        if: ${{ github.event_name == 'release' }}
+        run: DIST_NAME=ddlog-${{ github.ref }}-$(date +'%Y%m%d%H%M%S')-${{ runner.os }} ./build_distro.sh
+
+
+  # Run build-distro.sh if the build was triggered by a 'release' event.
+  #build_distro:
+  #  needs: build_and_test
+  #  strategy:
+  #    matrix:
+  #      os: [ubuntu-latest, macos-latest, windows-latest]
+  #  if: ${{ github.event_name == 'release' }}
+  #  steps:
+  #      - run: export DIST_NAME=ddlog-${{ github.ref }}-$(date +'%Y%m%d%H%M%S')-${{ runner.os }}
+  #      - run: ./build_distro.sh
